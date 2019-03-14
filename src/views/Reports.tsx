@@ -21,16 +21,18 @@ type Props = StateToProps & WithStyles<typeof styles>;
 
 class Reports extends React.Component<Props, State> {
 
-    constructor(props: Props) {
-        super(props);
-        this.state = {
+  
+       state : State = {
             rentals: { kind: 'LOADING' },
             startDate: '2019-01-16',
-            endDate: '2019-01-31'
+            endDate: '2019-01-18'        
         };
-    }
 
     componentDidMount() {
+        this.getRentals();
+    }
+
+    componentDidUpdate(){
         this.getRentals();
     }
 
@@ -39,7 +41,8 @@ class Reports extends React.Component<Props, State> {
         const rentalsRef = db.collection('rentals')
             .where('shopId', '==', shopId)
             .where('rentalState', '==', 'COMPLETED')
-            .where('endDate', '>=', this.state.startDate)
+            .where('endDate', '>', this.state.startDate)
+            .where('endDate', '<', this.state.endDate)
             .orderBy('endDate', 'asc');
         rentalsRef.get().then((querySnapshot) => {
             const rentalList: InStoreApi[] = [];
@@ -51,7 +54,6 @@ class Reports extends React.Component<Props, State> {
             this.setState({
                 rentals
             });
-            console.log(this.state.rentals);
         }, (error) => {
             const rentals: RemoteData<InStoreApi[]> = { kind: 'ERROR', error: error.message };
             this.setState({
@@ -61,7 +63,7 @@ class Reports extends React.Component<Props, State> {
        
     }
 
-    renderRentals() {
+    renderRentals = () =>{
         const classes = this.props.classes;
         const rentals = this.state.rentals;
         if (rentals.kind === 'LOADING') {
@@ -123,8 +125,9 @@ class Reports extends React.Component<Props, State> {
                 <Typography variant="h5" gutterBottom className={classes.header}>
                     Dummy report
                 </Typography>
-                <input name="startDate" type="date" onChange={this.setDate}/>
-                <input name="endDate" type="date" onChange={this.setDate}/>
+                <input name="startDate" type="date" onChange={e=>this.setDate(e)} value={this.state.startDate}/>
+                <input name="endDate" type="date" onChange={e=>this.setDate(e)} value={this.state.endDate}/>
+                <h3>Total no. of rentals</h3>
                 {this.renderRentals()}
             </Container>
         );
