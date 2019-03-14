@@ -9,6 +9,8 @@ import Typography from '@material-ui/core/Typography';
 
 interface State {
     rentals: RemoteData<InStoreApi[]>,
+    startDate: string,
+    endDate: string
 }
 
 interface StateToProps {
@@ -22,7 +24,9 @@ class Reports extends React.Component<Props, State> {
     constructor(props: Props) {
         super(props);
         this.state = {
-            rentals: { kind: 'LOADING' }
+            rentals: { kind: 'LOADING' },
+            startDate: '2019-01-16',
+            endDate: '2019-01-31'
         };
     }
 
@@ -35,6 +39,7 @@ class Reports extends React.Component<Props, State> {
         const rentalsRef = db.collection('rentals')
             .where('shopId', '==', shopId)
             .where('rentalState', '==', 'COMPLETED')
+            .where('endDate', '>=', this.state.startDate)
             .orderBy('endDate', 'asc');
         rentalsRef.get().then((querySnapshot) => {
             const rentalList: InStoreApi[] = [];
@@ -46,12 +51,14 @@ class Reports extends React.Component<Props, State> {
             this.setState({
                 rentals
             });
+            console.log(this.state.rentals);
         }, (error) => {
             const rentals: RemoteData<InStoreApi[]> = { kind: 'ERROR', error: error.message };
             this.setState({
                 rentals
             });
         });
+       
     }
 
     renderRentals() {
@@ -97,6 +104,18 @@ class Reports extends React.Component<Props, State> {
         );
     }
 
+    setDate = (e: any) => {
+        if (e.target.name === 'startDate') {
+            this.setState({
+                startDate: e.target.value
+            });
+        } else {
+            this.setState({
+                endDate: e.target.value
+            });
+        }
+    }
+
     render() {
         const classes = this.props.classes;
         return (
@@ -104,6 +123,8 @@ class Reports extends React.Component<Props, State> {
                 <Typography variant="h5" gutterBottom className={classes.header}>
                     Dummy report
                 </Typography>
+                <input name="startDate" type="date" onChange={this.setDate}/>
+                <input name="endDate" type="date" onChange={this.setDate}/>
                 {this.renderRentals()}
             </Container>
         );
